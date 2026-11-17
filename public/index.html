@@ -35,6 +35,11 @@
                     <input type="text" id="loadDestination" placeholder="Qayerga (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <input type="text" id="loadWeight" placeholder="Og'irligi (tonna/kg)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <input type="text" id="loadPrice" placeholder="Narxi (masalan: 500,000 so'm / Kelishilgan)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="loadCargoType" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="Standard">Standard yuk</option>
+                        <option value="Birga yuk (S сборный)">Birga yuk (S сборный - bo'sh joy)</option>
+                        <option value="Mo'rt / Maxsus">Mo'rt / Maxsus yuk</option>
+                    </select>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium p-2.5 rounded-lg transition-colors text-sm">Yukni joylash</button>
                 </form>
             </div>
@@ -55,6 +60,10 @@
                     <input type="text" id="tripOrigin" placeholder="Qayerdan (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <input type="text" id="tripDestination" placeholder="Qayerga (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <input type="date" id="tripDate" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <label class="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer pt-1">
+                        <input type="checkbox" id="tripVerified" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+                        <span>Hujjatlar tasdiqlangan haydovchi (Verified 🟢)</span>
+                    </label>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-lg transition-colors text-sm">Reysni qo'shish</button>
                 </form>
             </div>
@@ -135,7 +144,10 @@
             list.innerHTML = loads.map(l => `
                 <div class="p-3 border border-slate-100 rounded-lg bg-slate-50 flex justify-between items-center">
                     <div>
-                        <p class="font-semibold text-slate-800">${l.origin} ➔ ${l.destination}</p>
+                        <div class="flex items-center space-x-1.5">
+                            <p class="font-semibold text-slate-800">${l.origin} ➔ ${l.destination}</p>
+                            ${l.cargo_type && l.cargo_type !== 'Standard' ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-medium">${l.cargo_type}</span>` : ''}
+                        </div>
                         <p class="text-xs text-slate-500 mt-0.5">Vazni: ${l.weight} ${l.price ? '• ' + l.price : ''}</p>
                     </div>
                     <a href="https://t.me/share/url?url=https://poputniy.uz&text=Yuk:%20${encodeURIComponent(l.origin)}%20->%20${encodeURIComponent(l.destination)}%20(${encodeURIComponent(l.weight)})" target="_blank" class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1.5 rounded-md font-medium hover:bg-blue-200 transition-colors">Bog'lanish</a>
@@ -152,7 +164,10 @@
             list.innerHTML = trips.map(t => `
                 <div class="p-3 border border-slate-100 rounded-lg bg-slate-50 flex justify-between items-center">
                     <div>
-                        <p class="font-semibold text-slate-800">${t.origin} ➔ ${t.destination}</p>
+                        <div class="flex items-center space-x-1.5">
+                            <p class="font-semibold text-slate-800">${t.origin} ➔ ${t.destination}</p>
+                            ${t.driver_verified ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-medium">Verified 🟢</span>` : ''}
+                        </div>
                         <p class="text-xs text-slate-500 mt-0.5">Sana: ${t.date}</p>
                     </div>
                     <a href="https://t.me/share/url?url=https://poputniy.uz&text=Reys:%20${encodeURIComponent(t.origin)}%20->%20${encodeURIComponent(t.destination)}%20(${encodeURIComponent(t.date)})" target="_blank" class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1.5 rounded-md font-medium hover:bg-emerald-200 transition-colors">Bog'lanish</a>
@@ -181,11 +196,12 @@
             const destination = document.getElementById('loadDestination').value;
             const weight = document.getElementById('loadWeight').value;
             const price = document.getElementById('loadPrice').value;
+            const cargo_type = document.getElementById('loadCargoType').value;
 
             const res = await fetch('/api/loads', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ origin, destination, weight, price })
+                body: JSON.stringify({ origin, destination, weight, price, cargo_type })
             });
             const newLoad = await res.json();
             allLoads.push(newLoad);
@@ -199,11 +215,12 @@
             const origin = document.getElementById('tripOrigin').value;
             const destination = document.getElementById('tripDestination').value;
             const date = document.getElementById('tripDate').value;
+            const driver_verified = document.getElementById('tripVerified').checked;
 
             const res = await fetch('/api/trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ origin, destination, date })
+                body: JSON.stringify({ origin, destination, date, driver_verified })
             });
             const newTrip = await res.json();
             allTrips.push(newTrip);

@@ -15,6 +15,7 @@ async function initDB() {
         destination VARCHAR(100) NOT NULL,
         weight VARCHAR(50) NOT NULL,
         price VARCHAR(100),
+        cargo_type VARCHAR(50) DEFAULT 'Standard',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -23,6 +24,7 @@ async function initDB() {
         origin VARCHAR(100) NOT NULL,
         destination VARCHAR(100) NOT NULL,
         date VARCHAR(50) NOT NULL,
+        driver_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

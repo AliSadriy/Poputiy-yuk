@@ -51,19 +51,19 @@ app.get('/api/loads', async (req, res) => {
 });
 
 app.post('/api/loads', async (req, res) => {
-  const { origin, destination, weight, price } = req.body;
-  let newLoad = { id: Date.now().toString(), origin, destination, weight, price };
+  const { origin, destination, weight, price, cargo_type } = req.body;
+  let newLoad = { id: Date.now().toString(), origin, destination, weight, price, cargo_type: cargo_type || 'Standard' };
   try {
     const result = await pool.query(
-      'INSERT INTO loads (origin, destination, weight, price) VALUES ($1, $2, $3, $4) RETURNING *',
-      [origin, destination, weight, price]
+      'INSERT INTO loads (origin, destination, weight, price, cargo_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [origin, destination, weight, price, cargo_type || 'Standard']
     );
     newLoad = result.rows[0];
   } catch (err) {
     loads.unshift(newLoad);
   }
 
-  await sendTelegramNotification(`📦 *Yangi yuk qo'shildi!*\n\nQayerdan: ${origin}\nQayerga: ${destination}\nVazni: ${weight}${price ? '\nNarxi: ' + price : ''}`);
+  await sendTelegramNotification(`📦 *Yangi yuk qo'shildi!*\n\nQayerdan: ${origin}\nQayerga: ${destination}\nVazni: ${weight}${price ? '\nNarxi: ' + price : ''}\nTuri: ${cargo_type || 'Standard'}`);
   res.status(201).json(newLoad);
 });
 
@@ -80,19 +80,19 @@ app.get('/api/trips', async (req, res) => {
 });
 
 app.post('/api/trips', async (req, res) => {
-  const { origin, destination, date } = req.body;
-  let newTrip = { id: Date.now().toString(), origin, destination, date };
+  const { origin, destination, date, driver_verified } = req.body;
+  let newTrip = { id: Date.now().toString(), origin, destination, date, driver_verified: !!driver_verified };
   try {
     const result = await pool.query(
-      'INSERT INTO trips (origin, destination, date) VALUES ($1, $2, $3) RETURNING *',
-      [origin, destination, date]
+      'INSERT INTO trips (origin, destination, date, driver_verified) VALUES ($1, $2, $3, $4) RETURNING *',
+      [origin, destination, date, !!driver_verified]
     );
     newTrip = result.rows[0];
   } catch (err) {
     trips.unshift(newTrip);
   }
 
-  await sendTelegramNotification(`🚛 *Yangi bo'sh reys qo'shildi!*\n\nQayerdan: ${origin}\nQayerga: ${destination}\nSana: ${date}`);
+  await sendTelegramNotification(`🚛 *Yangi bo'sh reys qo'shildi!*\n\nQayerdan: ${origin}\nQayerga: ${destination}\nSana: ${date}${driver_verified ? '\n✅ Tasdiqlangan haydovchi (Verified)' : ''}`);
   res.status(201).json(newTrip);
 });
 

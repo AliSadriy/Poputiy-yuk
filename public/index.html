@@ -222,12 +222,13 @@
             const origin = document.getElementById('tripOrigin').value;
             const destination = document.getElementById('tripDestination').value;
             const date = document.getElementById('tripDate').value;
+            const vehicle_type = document.getElementById('tripVehicleType').value;
             const driver_verified = document.getElementById('tripVerified').checked;
 
             const res = await fetch('/api/trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ origin, destination, date, driver_verified })
+                body: JSON.stringify({ origin, destination, date, vehicle_type, driver_verified })
             });
             const newTrip = await res.json();
             allTrips.push(newTrip);

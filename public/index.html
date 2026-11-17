@@ -21,6 +21,26 @@
             <button onclick="switchTab('trips')" id="tripsTabBtn" class="flex-1 py-2 text-sm font-semibold rounded-lg text-slate-600 transition-all">Bo'sh Reyslar</button>
         </div>
 
+        <!-- Filters / Categories -->
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <select id="regionFilter" class="p-2 text-xs border border-slate-300 rounded-lg bg-white shadow-sm" onchange="filterItems()">
+                <option value="">Barcha hududlar</option>
+                <option value="Toshkent">Toshkent</option>
+                <option value="Samarqand">Samarqand</option>
+                <option value="Buxoro">Buxoro</option>
+                <option value="Fargona">Fargona</option>
+                <option value="Andijon">Andijon</option>
+                <option value="Namangan">Namangan</option>
+                <option value="Qashqadaryo">Qashqadaryo</option>
+                <option value="Surxondaryo">Surxondaryo</option>
+                <option value="Navoiy">Navoiy</option>
+                <option value="Xorazm">Xorazm</option>
+                <option value="Jizzax">Jizzax</option>
+                <option value="Sirdaryo">Sirdaryo</option>
+            </select>
+            <button onclick="toggleUrgentFilter()" id="urgentBtn" class="p-2 text-xs font-semibold border border-amber-300 bg-amber-50 text-amber-800 rounded-lg hover:bg-amber-100 transition-colors">🔥 Tezkor yuklar</button>
+        </div>
+
         <!-- Search Bar -->
         <div class="mb-6">
             <input type="text" id="searchInput" placeholder="Shahar bo'yicha qidirish (masalan: Toshkent)..." class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" oninput="filterItems()">
@@ -184,15 +204,21 @@
 
         function filterItems() {
             const query = document.getElementById('searchInput').value.toLowerCase();
+            const region = document.getElementById('regionFilter').value.toLowerCase();
+
             if (currentTab === 'loads') {
-                const filtered = allLoads.filter(l => 
-                    l.origin.toLowerCase().includes(query) || l.destination.toLowerCase().includes(query)
-                );
+                const filtered = allLoads.filter(l => {
+                    const matchesQuery = l.origin.toLowerCase().includes(query) || l.destination.toLowerCase().includes(query);
+                    const matchesRegion = !region || l.origin.toLowerCase().includes(region) || l.destination.toLowerCase().includes(region);
+                    return matchesQuery && matchesRegion;
+                });
                 renderLoads(filtered);
             } else {
-                const filtered = allTrips.filter(t => 
-                    t.origin.toLowerCase().includes(query) || t.destination.toLowerCase().includes(query)
-                );
+                const filtered = allTrips.filter(t => {
+                    const matchesQuery = t.origin.toLowerCase().includes(query) || t.destination.toLowerCase().includes(query);
+                    const matchesRegion = !region || t.origin.toLowerCase().includes(region) || t.destination.toLowerCase().includes(region);
+                    return matchesQuery && matchesRegion;
+                });
                 renderTrips(filtered);
             }
         }

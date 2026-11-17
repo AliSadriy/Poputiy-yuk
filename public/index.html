@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poputniy Yuk - Bo'sh Mashinalar va Yuklar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=your-api-key&lang=uz_UZ" type="text/javascript"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900">
+    <div class="container mx-auto p-4 max-w-md">
+        <header class="bg-blue-600 text-white p-5 rounded-xl shadow-md mb-6 text-center">
+            <h1 class="text-2xl font-black tracking-tight">Poputniy Yuk</h1>
+            <p class="text-xs uppercase tracking-wider text-blue-100 mt-1">Bo'sh qaytayotgan mashinalar va yuklar</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="flex bg-slate-200 p-1 rounded-xl mb-4">
+            <button onclick="switchTab('loads')" id="loadsTabBtn" class="flex-1 py-2 text-sm font-semibold rounded-lg bg-white shadow-sm text-blue-600 transition-all">Yuklar</button>
+            <button onclick="switchTab('trips')" id="tripsTabBtn" class="flex-1 py-2 text-sm font-semibold rounded-lg text-slate-600 transition-all">Bo'sh Reyslar</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <input type="text" id="searchInput" placeholder="Shahar bo'yicha qidirish (masalan: Toshkent)..." class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm" oninput="filterItems()">
+        </div>
+
+        <!-- Loads Section -->
+        <div id="loadsSection" class="space-y-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="font-bold text-base text-slate-800 mb-3">Yuk qo'shish</h2>
+                <form id="loadForm" class="space-y-3">
+                    <input type="text" id="loadOrigin" placeholder="Qayerdan (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="loadDestination" placeholder="Qayerga (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="loadWeight" placeholder="Og'irligi (tonna/kg)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="loadPrice" placeholder="Narxi (masalan: 500,000 so'm / Kelishilgan)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium p-2.5 rounded-lg transition-colors text-sm">Yukni joylash</button>
+                </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="font-bold text-base text-slate-800 mb-3">Mavjud Yuklar</h2>
+                <div id="loadsList" class="space-y-2.5 text-sm">
+                    <p class="text-slate-500 text-center py-4">Yuklar yuklanmoqda...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trips Section -->
+        <div id="tripsSection" class="space-y-6 hidden">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="font-bold text-base text-slate-800 mb-3">Bo'sh reys qo'shish</h2>
+                <form id="tripForm" class="space-y-3">
+                    <input type="text" id="tripOrigin" placeholder="Qayerdan (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="tripDestination" placeholder="Qayerga (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="date" id="tripDate" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium p-2.5 rounded-lg transition-colors text-sm">Reysni qo'shish</button>
+                </form>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="font-bold text-base text-slate-800 mb-3">Mavjud Bo'sh Reyslar</h2>
+                <div id="tripsList" class="space-y-2.5 text-sm">
+                    <p class="text-slate-500 text-center py-4">Reyslar yuklanmoqda...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="mt-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="font-bold text-base text-slate-800 mb-3">O'zbekiston xaritasi</h2>
+            <div id="map" class="w-full h-64 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-sm">Yandex Map yuklanmoqda...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'loads';
+        let allLoads = [];
+        let allTrips = [];
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const loadsSec = document.getElementById('loadsSection');
+            const tripsSec = document.getElementById('tripsSection');
+            const loadsBtn = document.getElementById('loadsTabBtn');
+            const tripsBtn = document.getElementById('tripsTabBtn');
+            document.getElementById('searchInput').value = '';
+
+            if (tab === 'loads') {
+                loadsSec.classList.remove('hidden');
+                tripsSec.classList.add('hidden');
+                loadsBtn.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+                loadsBtn.classList.remove('text-slate-600');
+                tripsBtn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+                tripsBtn.classList.add('text-slate-600');
+                renderLoads(allLoads);
+            } else {
+                tripsSec.classList.remove('hidden');
+                loadsSec.classList.add('hidden');
+                tripsBtn.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+                tripsBtn.classList.remove('text-slate-600');
+                loadsBtn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+                loadsBtn.classList.add('text-slate-600');
+                renderTrips(allTrips);
+            }
+        }
+
+        async function fetchLoads() {
+            try {
+                const res = await fetch('/api/loads');
+                allLoads = await res.json();
+                renderLoads(allLoads);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function fetchTrips() {
+            try {
+                const res = await fetch('/api/trips');
+                allTrips = await res.json();
+                renderTrips(allTrips);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderLoads(loads) {
+            const list = document.getElementById('loadsList');
+            if (loads.length === 0) {
+                list.innerHTML = '<p class="text-slate-500 text-center py-4">Hozircha yuklar yo\'q.</p>';
+                return;
+            }
+            list.innerHTML = loads.map(l => `
+                <div class="p-3 border border-slate-100 rounded-lg bg-slate-50 flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold text-slate-800">${l.origin} ➔ ${l.destination}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Vazni: ${l.weight} ${l.price ? '• ' + l.price : ''}</p>
+                    </div>
+                    <a href="https://t.me/share/url?url=https://poputniy.uz&text=Yuk:%20${encodeURIComponent(l.origin)}%20->%20${encodeURIComponent(l.destination)}%20(${encodeURIComponent(l.weight)})" target="_blank" class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1.5 rounded-md font-medium hover:bg-blue-200 transition-colors">Bog'lanish</a>
+                </div>
+            `).join('');
+        }
+
+        function renderTrips(trips) {
+            const list = document.getElementById('tripsList');
+            if (trips.length === 0) {
+                list.innerHTML = '<p class="text-slate-500 text-center py-4">Hozircha bo\'sh reyslar yo\'q.</p>';
+                return;
+            }
+            list.innerHTML = trips.map(t => `
+                <div class="p-3 border border-slate-100 rounded-lg bg-slate-50 flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold text-slate-800">${t.origin} ➔ ${t.destination}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sana: ${t.date}</p>
+                    </div>
+                    <a href="https://t.me/share/url?url=https://poputniy.uz&text=Reys:%20${encodeURIComponent(t.origin)}%20->%20${encodeURIComponent(t.destination)}%20(${encodeURIComponent(t.date)})" target="_blank" class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1.5 rounded-md font-medium hover:bg-emerald-200 transition-colors">Bog'lanish</a>
+                </div>
+            `).join('');
+        }
+
+        function filterItems() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (currentTab === 'loads') {
+                const filtered = allLoads.filter(l => 
+                    l.origin.toLowerCase().includes(query) || l.destination.toLowerCase().includes(query)
+                );
+                renderLoads(filtered);
+            } else {
+                const filtered = allTrips.filter(t => 
+                    t.origin.toLowerCase().includes(query) || t.destination.toLowerCase().includes(query)
+                );
+                renderTrips(filtered);
+            }
+        }
+
+        document.getElementById('loadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const origin = document.getElementById('loadOrigin').value;
+            const destination = document.getElementById('loadDestination').value;
+            const weight = document.getElementById('loadWeight').value;
+            const price = document.getElementById('loadPrice').value;
+
+            const res = await fetch('/api/loads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ origin, destination, weight, price })
+            });
+            const newLoad = await res.json();
+            allLoads.push(newLoad);
+            renderLoads(allLoads);
+
+            document.getElementById('loadForm').reset();
+        });
+
+        document.getElementById('tripForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const origin = document.getElementById('tripOrigin').value;
+            const destination = document.getElementById('tripDestination').value;
+            const date = document.getElementById('tripDate').value;
+
+            const res = await fetch('/api/trips', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ origin, destination, date })
+            });
+            const newTrip = await res.json();
+            allTrips.push(newTrip);
+            renderTrips(allTrips);
+
+            document.getElementById('tripForm').reset();
+        });
+
+        fetchLoads();
+        fetchTrips();
+
+        // Telegram WebApp Initialization
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                const header = document.querySelector('header');
+                const welcome = document.createElement('p');
+                welcome.className = 'text-xs text-blue-200 mt-1';
+                welcome.textContent = `Xush kelibsiz, ${user.first_name || 'Foydalanuvchi'}!`;
+                header.appendChild(welcome);
+            }
+        }
+
+        // Yandex Maps Initialization
+        ymaps.ready(initMap);
+        function initMap() {
+            const mapContainer = document.getElementById('map');
+            mapContainer.innerHTML = '';
+            const myMap = new ymaps.Map("map", {
+                center: [41.2995, 69.2401], // Tashkent coordinates
+                zoom: 6
+            });
+            
+            // Add sample route / placemarks for Uzbekistan main cities
+            const placemark = new ymaps.Placemark([41.2995, 69.2401], {
+                balloonContent: 'Tashkent - Markaziy logistika punkti'
+            });
+            myMap.geoObjects.add(placemark);
+        }
+    </script>
+</body>
+</html>

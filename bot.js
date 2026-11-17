@@ -1,9 +1,13 @@
 const TelegramBot = require('node-telegram-bot-api');
 
-const token = '9275005127:AAFLgDgCiAn-dddYqtD7PcS6K6DEyhvk1kQ';
+const token = process.env.TELEGRAM_BOT_TOKEN || '9275005127:AAFLgDgCiAn-dddYqtD7PcS6K6DEyhvk1kQ';
 const webAppUrl = process.env.WEB_APP_URL || 'https://poputniy.uz'; 
 
 const bot = new TelegramBot(token, { polling: true });
+
+bot.on('polling_error', (error) => {
+    console.log('Telegram polling error:', error.code || error.message);
+});
 
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
@@ -31,7 +35,7 @@ bot.onText(/\/start/, (msg) => {
                 ]
             ]
         }
-    });
+    }).catch(err => console.error('Send message error:', err.message));
 });
 
 bot.on('callback_query', (query) => {
@@ -43,7 +47,7 @@ bot.on('callback_query', (query) => {
                     [{ text: '📱 Mini App\'ni ochish', web_app: { url: webAppUrl } }]
                 ]
             }
-        });
+        }).catch(err => console.error('Callback send error:', err.message));
     } else if (query.data === 'add_trip') {
         bot.sendMessage(chatId, `Bo'sh reys qo'shish uchun Mini App'dan foydalaning:`, {
             reply_markup: {
@@ -51,8 +55,8 @@ bot.on('callback_query', (query) => {
                     [{ text: '📱 Mini App\'ni ochish', web_app: { url: webAppUrl } }]
                 ]
             }
-        });
+        }).catch(err => console.error('Callback send error:', err.message));
     }
 });
 
-console.log('Telegram Bot started with Mini App web_app support...');
+console.log('Telegram Bot started successfully with polling...');

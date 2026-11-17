@@ -4,10 +4,12 @@
   "description": "Poputniy Yuk Backend API",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "bot": "node bot.js"
   },
   "dependencies": {
     "express": "^4.19.2",
+    "node-telegram-bot-api": "^2.4.0",
     "pg": "^8.23.1"
   }
 }

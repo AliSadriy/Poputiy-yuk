@@ -114,6 +114,22 @@
         let currentTab = 'loads';
         let allLoads = [];
         let allTrips = [];
+        let urgentOnly = false;
+
+        function toggleUrgentFilter() {
+            urgentOnly = !urgentOnly;
+            const btn = document.getElementById('urgentBtn');
+            if (urgentOnly) {
+                btn.classList.remove('bg-amber-50', 'text-amber-800', 'border-amber-300');
+                btn.classList.add('bg-amber-600', 'text-white', 'border-amber-600');
+                btn.innerText = '🔥 Tezkor (Yoqilgan)';
+            } else {
+                btn.classList.add('bg-amber-50', 'text-amber-800', 'border-amber-300');
+                btn.classList.remove('bg-amber-600', 'text-white', 'border-amber-600');
+                btn.innerText = '🔥 Tezkor yuklar';
+            }
+            filterItems();
+        }
 
         function switchTab(tab) {
             currentTab = tab;
@@ -210,7 +226,8 @@
                 const filtered = allLoads.filter(l => {
                     const matchesQuery = l.origin.toLowerCase().includes(query) || l.destination.toLowerCase().includes(query);
                     const matchesRegion = !region || l.origin.toLowerCase().includes(region) || l.destination.toLowerCase().includes(region);
-                    return matchesQuery && matchesRegion;
+                    const matchesUrgent = !urgentOnly || (l.price && l.price.toLowerCase().includes('tezkor'));
+                    return matchesQuery && matchesRegion && matchesUrgent;
                 });
                 renderLoads(filtered);
             } else {

@@ -60,6 +60,13 @@
                     <input type="text" id="tripOrigin" placeholder="Qayerdan (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <input type="text" id="tripDestination" placeholder="Qayerga (Shahri)" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <input type="date" id="tripDate" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <select id="tripVehicleType" class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="Tentli yuk mashinasi">Tentli yuk mashinasi (Fura/Gazel)</option>
+                        <option value="Refrijerator (Sovutgich)">Refrijerator (Sovutgich)</option>
+                        <option value="Klukov / Bortli">Klukov / Bortli mashina</option>
+                        <option value="Samasval (Ag‘darma)">Samasval (Ag‘darma)</option>
+                        <option value="Mikroavtobus">Mikroavtobus / Yengil yuk</option>
+                    </select>
                     <label class="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer pt-1">
                         <input type="checkbox" id="tripVerified" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
                         <span>Hujjatlar tasdiqlangan haydovchi (Verified 🟢)</span>
@@ -168,7 +175,7 @@
                             <p class="font-semibold text-slate-800">${t.origin} ➔ ${t.destination}</p>
                             ${t.driver_verified ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-medium">Verified 🟢</span>` : ''}
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5">Sana: ${t.date}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Sana: ${t.date} ${t.vehicle_type ? '• ' + t.vehicle_type : ''}</p>
                     </div>
                     <a href="https://t.me/share/url?url=https://poputniy.uz&text=Reys:%20${encodeURIComponent(t.origin)}%20->%20${encodeURIComponent(t.destination)}%20(${encodeURIComponent(t.date)})" target="_blank" class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1.5 rounded-md font-medium hover:bg-emerald-200 transition-colors">Bog'lanish</a>
                 </div>

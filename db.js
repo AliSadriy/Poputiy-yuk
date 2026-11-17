@@ -24,6 +24,7 @@ async function initDB() {
         origin VARCHAR(100) NOT NULL,
         destination VARCHAR(100) NOT NULL,
         date VARCHAR(50) NOT NULL,
+        vehicle_type VARCHAR(50) DEFAULT 'Tentli (Lombard)',
         driver_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );

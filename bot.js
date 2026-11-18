@@ -1,7 +1,7 @@
 const { Telegraf, Markup } = require('telegraf');
 
 const token = process.env.TELEGRAM_BOT_TOKEN || '9275005127:AAFLgDgCiAn-dddYqtD7PcS6K6DEyhvk1kQ';
-const webAppUrl = process.env.WEB_APP_URL || 'https://poputniy.uz';
+const webAppUrl = process.env.WEB_APP_URL || 'https://alisadriy.github.io/Poputiy-yuk/';
 
 const bot = new Telegraf(token);
 

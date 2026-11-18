@@ -1,0 +1,12 @@
+{
+  "name": "poputniy-yuk-bot",
+  "version": "1.0.0",
+  "description": "Poputniy Yuk Telegram Bot",
+  "main": "working-bot.js",
+  "scripts": {
+    "start": "node working-bot.js"
+  },
+  "dependencies": {
+    "telegraf": "^4.16.3"
+  }
+}
